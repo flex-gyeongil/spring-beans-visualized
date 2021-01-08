@@ -40,19 +40,21 @@ var drawApplicationGraph = function(beanUrl, typeFilter, highlightBeans, calcull
       .charge(-100)
       .size([width, height]);
 
-  d3.json(beanUrl, function(error, json) {
+  d3.json(beanUrl, function(error, res) {
     if (error) {
       errorCallback(error);
       return;
     };
 
-    var beanTypeContains = function(b, filter) { return b.type.toLowerCase().indexOf(filter.toLowerCase()) != -1 };
+    var json = Object.entries(res.contexts['application-1'].beans);
+
+    var beanTypeContains = function(b, filter) { return b[1].type.toLowerCase().indexOf(filter.toLowerCase()) != -1 };
     var beans = typeFilter != ''
-                ? json[0].beans.filter(function(b){ return beanTypeContains(b, typeFilter)})
-                : json[0].beans;
+                ? json.filter(function(b){ return beanTypeContains(b, typeFilter)})
+                : json;
     var beanNodes = beans.map(function (b){
       return {
-        name: b.bean,
+        name: b[0],
         group: 1,
         isHighlighted: beanTypeContains(b, highlightBeans)
       }
@@ -66,10 +68,10 @@ var drawApplicationGraph = function(beanUrl, typeFilter, highlightBeans, calcull
     }
 
     function beanToLinks(bean) {
-      return bean.dependencies.map(function (reference) {
+      return bean[1].dependencies.map(function (reference) {
         return {
           source: nameToId(reference),
-          target: nameToId(bean.bean),
+          target: nameToId(bean[0]),
           value: 1
         };
       }).filter(function (link){
